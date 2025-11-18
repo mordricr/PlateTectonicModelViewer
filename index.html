@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Plate Tectonics AR - Working Version</title>
+
+  <!-- Pin a known good version -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer@3.3.0/dist/model-viewer.min.js"></script>
+
+  <style>
+    html,body { height:100%; margin:0; background:#f0f0f0; font-family:sans-serif; }
+    model-viewer { width:100%; height:100vh; display:block; }
+
+    #ar-button {
+      position: fixed;
+      left: 50%;
+      bottom: 26px;
+      transform: translateX(-50%);
+      padding: 14px 22px;
+      font-size: 18px;
+      background: #007AFF;
+      color:white;
+      border:none;
+      border-radius:12px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.25);
+      z-index:999;
+      cursor:pointer;
+    }
+    #ar-button[disabled] { opacity:0.5; cursor:default; }
+
+    #msg {
+      position: fixed;
+      left: 12px;
+      top: 12px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="msg">Loading model…</div>
+
+  <model-viewer id="viewer"
+    src="Converg2.glb"
+    ios-src="model.usdz"
+    alt="Plate tectonics model"
+    ar
+    ar-modes="scene-viewer quick-look webxr"
+    camera-controls
+    autoplay
+    animation-loop
+    animation-direction="normal"
+    auto-rotate
+    environment-image="neutral"
+    exposure="1.1">
+  </model-viewer>
+
+  <button id="ar-button">View in AR</button>
+
+<script>
+  const viewer = document.getElementById("viewer");
+  const btn = document.getElementById("ar-button");
+  const msg = document.getElementById("msg");
+
+  const setMsg = (text) => msg.textContent = text;
+
+  viewer.addEventListener("load", async () => {
+    setMsg("Model loaded.");
+
+    // Test AR support
+    if (typeof viewer.canActivateAR === "function") {
+      const canAR = await viewer.canActivateAR();
+      if (!canAR) {
+        btn.disabled = true;
+        setMsg("AR not supported on this device.");
+      } else {
+        setMsg("Tap 'View in AR' to place the model.");
+      }
+    } else {
+      // Older API — assume AR is supported if button exists
+      setMsg("Tap 'View in AR' to place the model.");
+    }
+  });
+
+  btn.addEventListener("click", async () => {
+    try {
+      setMsg("Opening AR…");
+      await viewer.activateAR();   // ✅ Correct working method
+    } catch (err) {
+      console.error(err);
+      setMsg("Could not open AR: " + err.message);
+    }
+  });
+
+  viewer.addEventListener("error", e => {
+    console.error("model-viewer error:", e);
+    setMsg("Error loading model (check file paths).");
+  });
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
